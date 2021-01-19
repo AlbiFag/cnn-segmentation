@@ -152,6 +152,44 @@ def calc_DM_batch_edge(y_true, numClasses):
     return np.array(dist_batch).astype(np.float32)
 
 
+# def calc_DM_batch_edge2(y_true, numClasses):
+#     """
+#     Prepares the input for distance maps computation: it takes y_true masks, creates y_true contours
+#     and passes it to calc_DM_edge.
+#     Args:
+#         y_true: ground truth tensor [class, batch, rows, columns, slices] or [class, batch, rows, columns]
+#         numClasses: number of classes
+#     Returns:
+#         array of distance map of the same dimension of input tensor
+#         array of ground truth contours of the same dimension of input tensor
+#     """
+#     y_true_numpy = y_true.numpy()
+#     # surface_label = np.zeros((numClasses - 1, ) + y_true_numpy.shape[1::])
+#     # dist_batch = np.zeros((numClasses - 1, ) + y_true_numpy.shape[1::])
+#     surface_label = np.zeros_like(y_true_numpy)
+#     dist_batch = np.zeros_like(y_true_numpy)
+#     for c in range(1, numClasses):
+#         temp_y = y_true_numpy[c]
+#         for i, y in enumerate(temp_y):
+#             for k in range(y.shape[2]):
+#                 img_lab = y[:, :, k].astype(np.uint8)
+#                 contour_lab, hierarchy_lab = findContours(img_lab, RETR_EXTERNAL, CHAIN_APPROX_NONE)
+#                 if len(contour_lab) != 0:  # CONTOUR PER SLICE IS PRESENT
+#                     for j in range(len(contour_lab)):
+#                         if contour_lab[j].shape[1] == 1:
+#                             contour_lab[j].resize(contour_lab[j].shape[0], 2)
+#                         surface_label[c, i, contour_lab[j][:, 1], contour_lab[j][:, 0], k] = 1
+#                 else:
+#                     surface_label[c, i, :, :, k] = np.zeros_like(img_lab)
+#             dist_batch[c, i] = calc_DM_edge(surface_label[c, i])
+#
+#     surface_label[0] = surface_label[1] + surface_label[2] + surface_label[3] + surface_label[4]
+#     for i in range(y_true_numpy.shape[1]):
+#         dist_batch[0,i] = calc_DM_edge(surface_label[0, i])
+#     surface_label[0] = 1 - surface_label[0]
+#     return np.array(dist_batch).astype(np.float32), np.array(surface_label).astype(np.float32)
+
+
 def calc_DM_batch_edge2(y_true, numClasses):
     """
     Prepares the input for distance maps computation: it takes y_true masks, creates y_true contours
@@ -164,10 +202,10 @@ def calc_DM_batch_edge2(y_true, numClasses):
         array of ground truth contours of the same dimension of input tensor
     """
     y_true_numpy = y_true.numpy()
-    # surface_label = np.zeros((numClasses - 1, ) + y_true_numpy.shape[1::])
-    # dist_batch = np.zeros((numClasses - 1, ) + y_true_numpy.shape[1::])
-    surface_label = np.zeros_like(y_true_numpy)
-    dist_batch = np.zeros_like(y_true_numpy)
+    surface_label = np.zeros((2, ) + y_true_numpy.shape[1::])
+    dist_batch = np.zeros((2, ) + y_true_numpy.shape[1::])
+    # surface_label = np.zeros_like(y_true_numpy)
+    # dist_batch = np.zeros_like(y_true_numpy)
     for c in range(1, numClasses):
         temp_y = y_true_numpy[c]
         for i, y in enumerate(temp_y):
@@ -178,14 +216,16 @@ def calc_DM_batch_edge2(y_true, numClasses):
                     for j in range(len(contour_lab)):
                         if contour_lab[j].shape[1] == 1:
                             contour_lab[j].resize(contour_lab[j].shape[0], 2)
-                        surface_label[c, i, contour_lab[j][:, 1], contour_lab[j][:, 0], k] = 1
-                else:
-                    surface_label[c, i, :, :, k] = np.zeros_like(img_lab)
-            dist_batch[c, i] = calc_DM_edge(surface_label[c, i])
+                        surface_label[1, i, contour_lab[j][:, 1], contour_lab[j][:, 0], k] = 1
+                # else:
+                #     surface_label[1, i, :, :, k] = np.zeros_like(img_lab)
+            # dist_batch[c, i] = calc_DM_edge(surface_label[c, i])
 
-    surface_label[0] = surface_label[1] + surface_label[2] + surface_label[3] + surface_label[4]
+    surface_label[0] = surface_label[1]
     for i in range(y_true_numpy.shape[1]):
-        dist_batch[0,i] = calc_DM_edge(surface_label[0, i])
+        DM = calc_DM_edge(surface_label[0, i])
+        dist_batch[0, i] = DM
+        dist_batch[1, i] = DM
     surface_label[0] = 1 - surface_label[0]
     return np.array(dist_batch).astype(np.float32), np.array(surface_label).astype(np.float32)
 
