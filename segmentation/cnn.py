@@ -683,7 +683,7 @@ class PEENet2(object):
                                      kernel_regularizer=self.kernel_regularizer,
                                      bias_regularizer=self.bias_regularizer)(temp_layer_merge)
 
-        temp_layer_edge = conv_layer(2, kernel_size=softmax_kernel_size,
+        temp_layer_edge = conv_layer(self.n_classes, kernel_size=softmax_kernel_size,
                                      strides=self.strides,
                                      padding='same',
                                      activation='linear',
