@@ -587,15 +587,15 @@ def PEE(x, filters):
         pool_size_1 = (5, 5, 5)
         pool_size_2 = (7, 7, 7)
 
-    x = Conv3D(filters/2, (1, 1, 1), padding='same')(x)
-    x_1 = AveragePooling3D(pool_size=pool_size_1, strides = (1, 1, 1), padding='same')(x)
-    x_2 = AveragePooling3D(pool_size=pool_size_2, strides = (1, 1, 1), padding='same')(x)
+    x = Conv3D(filters/2, (1, 1, 1), padding='same', dtype='float16')(x)
+    x_1 = AveragePooling3D(pool_size=pool_size_1, strides = (1, 1, 1), padding='same', dtype='float16')(x)
+    x_2 = AveragePooling3D(pool_size=pool_size_2, strides = (1, 1, 1), padding='same', dtype='float16')(x)
 
     x_11 = Subtract()([x, x_1])
     x_22 = Subtract()([x, x_2])
 
     x = Concatenate()([x, x_11, x_22])
-    x = Conv3D(filters, (1, 1, 1), padding='same')(x)
+    x = Conv3D(filters, (1, 1, 1), padding='same', dtype='float16')(x)
     return x
 
 
