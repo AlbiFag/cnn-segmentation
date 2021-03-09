@@ -915,8 +915,8 @@ class CEL_UNet_16(object):
                                      kernel_regularizer=self.kernel_regularizer,
                                      bias_regularizer=self.bias_regularizer, dtype='float16')(temp_layer_edge)
 
-        output_tensor_edge = layers.Softmax(axis=-1, dtype='float32', name='out_edge')(temp_layer_edge)
-        output_tensor_mask = layers.Softmax(axis=-1, dtype='float32',  name='out_mask')(temp_layer_mask)
+        output_tensor_edge = layers.Softmax(axis=-1, dtype='float16', name='out_edge')(temp_layer_edge)
+        output_tensor_mask = layers.Softmax(axis=-1, dtype='float16',  name='out_mask')(temp_layer_mask)
         self.model = Model(inputs=[input_tensor], outputs=[output_tensor_edge, output_tensor_mask])
 
     def set_initial_weights(self, weights):
