@@ -183,7 +183,7 @@ def computeContours(y_true, numClasses):
         number of contour voxels
     """
     y_true_numpy = y_true.numpy()
-    contour_voxels = np.zeors(1)
+    contour_voxels = np.zeros(1)
     surface_label = np.zeros_like(y_true_numpy)
     for c in range(1, numClasses):
         temp_y = y_true_numpy[c]
