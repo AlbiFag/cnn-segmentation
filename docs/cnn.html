@@ -42,7 +42,8 @@ models in a dynamic way.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>This class provides a simple interface to create
-a U-Net network with custom parameters.</p>
+a CELU-Net network with custom parameters. CEL-Unet has the same encoding path of simple Unet and splits
+decoding branch in two parallel paths, one for filled masks segmentation, another for boundary segmentation.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>input_size</code></strong></dt>
@@ -115,7 +116,8 @@ were stored.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>This class provides a simple interface to create
-a U-Net network with custom parameters.</p>
+a Chen-UNet network with custom parameters, to replicate network found in paper "3D Feature-Enhanced Network for
+Automatic Femur Segmentation".</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>input_size</code></strong></dt>

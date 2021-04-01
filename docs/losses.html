@@ -38,7 +38,9 @@ in segmentation tasks.</p>
 <span>def <span class="ident">Boundary_CE_Loss</span></span>(<span>numClasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for boundary_crossentropy.</p>
+<div class="desc"><p>Computes "double-faced" boundary cross entropy, after the generation of contours ground truth labels with function
+"computeContours".
+Definition is the same as the Region_CE_Loss, but with ground truth and prediction contours, instead of filled masks.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>numClasses</code></strong></dt>
@@ -51,7 +53,9 @@ in segmentation tasks.</p>
 <span>def <span class="ident">Distanced_Boundary_CE_Loss</span></span>(<span>numClasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for dist_boundary_crossentropy.</p>
+<div class="desc"><p>Computes distanced "double-faced" boundary cross entropy, after the generation of Ground Truth Contours
+and Euclidean Distance Map map with function "calc_DM_batch_edge".
+Definition is the same as the Distanced_Region_CE_Loss, but with ground truth and prediction contours, instead of filled masks.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>numClasses</code></strong></dt>
@@ -63,7 +67,15 @@ in segmentation tasks.</p>
 <span>def <span class="ident">Distanced_CE_Loss</span></span>(<span>numClasses, alpha)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for dice_categorical_cross_entropy.</p>
+<div class="desc"><p>Computes Cross Entropy weighted by an exponential transformation of the Euclidean
+Distance Map, called Distance Weighted Map (DWM). Voxels closer to boundaries are weighted more.
+Distanced Cross Entropy is combined with Dice Loss with parameter alpha.</p>
+<p>Distanced_CE is defined as follows:
+<span><span class="MathJax_Preview"> L_{Dce} = -\frac{1}{N} \sum^{N} (\sum_{c=1}^{C} DWM_c \cdot y_c \cdot \log{\hat{y}_c}) </span><script type="math/tex; mode=display"> L_{Dce} = -\frac{1}{N} \sum^{N} (\sum_{c=1}^{C} DWM_c \cdot y_c \cdot \log{\hat{y}_c}) </script></span>
+with the DWM defined as:
+<span><span class="MathJax_Preview"> DWM_c = 1 + \gamma * exp(-\frac{EDT_c}{\sigma}), \hspace{3mm} \gamma = 8, \hspace{3mm} \sigma = 10 </span><script type="math/tex; mode=display"> DWM_c = 1 + \gamma * exp(-\frac{EDT_c}{\sigma}), \hspace{3mm} \gamma = 8, \hspace{3mm} \sigma = 10 </script></span>
+C is the number of classes, y is the ground truth, y(hat) is the segmentation map, EDT is the
+Euclidean Distance Transform and N is the total number of voxels.</p>
 <h2 id="arguments">Arguments</h2>
 <p>numClasses: number of classes
 alpha: parameter to weight contribution of dice and distance-weighted categorical crossentropy loss</p>
@@ -74,7 +86,20 @@ alpha: parameter to weight contribution of dice and distance-weighted categorica
 <span>def <span class="ident">Distanced_Region_CE_Loss</span></span>(<span>numClasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for dist_region_crossentropy_loss.</p>
+<div class="desc"><p>Computes distanced "double-faced" regional cross entropy weighted with Euclidean Distance Map,
+after generation of Euclidean Distance Map with function "calc_DM_batch".
+Distanced_region_CE_Loss is defined as follows:
+<span><span class="MathJax_Preview"> L_{1}^{(c)} = \frac{1}{N} \sum^{N} (-DWM \cdot y_{c} \cdot \log{\hat{y_{c}}}) </span><script type="math/tex; mode=display"> L_{1}^{(c)} = \frac{1}{N} \sum^{N} (-DWM \cdot y_{c} \cdot \log{\hat{y_{c}}}) </script></span>
+<span><span class="MathJax_Preview"> L_{2}^{(c)} = \frac{1}{N} \sum^{N} (-DWM \cdot (1-y_{c}) \cdot \log{(1-\hat{y_{c}})}) </span><script type="math/tex; mode=display"> L_{2}^{(c)} = \frac{1}{N} \sum^{N} (-DWM \cdot (1-y_{c}) \cdot \log{(1-\hat{y_{c}})}) </script></span>
+<span><span class="MathJax_Preview"> L_{edge} = \sum_{c=1}^{C} w_c * [\beta \cdot L_{1}^{(c)} + (1 - \beta) * L_{2}^{(c)}] </span><script type="math/tex; mode=display"> L_{edge} = \sum_{c=1}^{C} w_c * [\beta \cdot L_{1}^{(c)} + (1 - \beta) * L_{2}^{(c)}] </script></span>
+with the DWM defined as:
+<span><span class="MathJax_Preview"> DWM_c = 1 + \gamma * exp(-\frac{EDT_c}{\sigma}), \hspace{3mm} \gamma = 8, \hspace{3mm} \sigma = 10 </span><script type="math/tex; mode=display"> DWM_c = 1 + \gamma * exp(-\frac{EDT_c}{\sigma}), \hspace{3mm} \gamma = 8, \hspace{3mm} \sigma = 10 </script></span>
+C is the number of classes, EDT is the Euclidean Distance Transform, y and y(hat) are reference and predicted
+segmentation maps and N is the total number of voxels in the volume.
+beta is a parameter that weights the two contriution accounting for the strong imbalance between the number of
+contour voxels and background voxels, defined as follows:
+<span><span class="MathJax_Preview"> \beta = \frac{N_{edge}}{N_{total}} </span><script type="math/tex; mode=display"> \beta = \frac{N_{edge}}{N_{total}} </script></span>
+where N_edge is the number of contour voxels.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>numClasses</code></strong></dt>
@@ -87,7 +112,13 @@ alpha: parameter to weight contribution of dice and distance-weighted categorica
 <span>def <span class="ident">ExpLog_Loss</span></span>(<span>numClasses, gamma=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for exp_log.</p>
+<div class="desc"><p>Computes Categorical Cross Entropy and Dice with exponential logarithmic transformations.</p>
+<p>ExpLog Loss is defined as follows:
+<span><span class="MathJax_Preview"> L_{D} = \frac{1}{C} \sum_{c=1}^{C} (-\log{\mathcal{D}_{c}(y,\hat{y})})^{{\gamma}_D} </span><script type="math/tex; mode=display"> L_{D} = \frac{1}{C} \sum_{c=1}^{C} (-\log{\mathcal{D}_{c}(y,\hat{y})})^{{\gamma}_D} </script></span>
+<span><span class="MathJax_Preview"> L_{CE} = \frac{1}{C} \sum_{c=1}^{C} w_c(-\frac{1}{N} \sum^{N} (y_{c} \cdot \log{\hat{y}_{c}})^{{\gamma}_{CE}}) </span><script type="math/tex; mode=display"> L_{CE} = \frac{1}{C} \sum_{c=1}^{C} w_c(-\frac{1}{N} \sum^{N} (y_{c} \cdot \log{\hat{y}_{c}})^{{\gamma}_{CE}}) </script></span>
+<span><span class="MathJax_Preview"> L_{out} = \beta \cdot L_{D} + (1-\beta) \cdot L_{CE} </span><script type="math/tex; mode=display"> L_{out} = \beta \cdot L_{D} + (1-\beta) \cdot L_{CE} </script></span>
+<span><span class="MathJax_Preview"> \beta = 0.8 , \hspace{3mm}, {\gamma}_D = 1, \hspace{3mm}, {\gamma}_{CE} = 1 </span><script type="math/tex; mode=display"> \beta = 0.8 , \hspace{3mm}, {\gamma}_D = 1, \hspace{3mm}, {\gamma}_{CE} = 1 </script></span>
+C is the number of classes, y is the ground truth, y(hat) is the segmentation map and N is the total number of voxels.</p>
 <h2 id="arguments">Arguments</h2>
 <p>numClasses: number of classes
 alpha: parameter to weight contribution of dice and distance-weighted categorical crossentropy loss
@@ -99,18 +130,42 @@ gamma: exponential of logaritmic dice and CE</p>
 <span>def <span class="ident">Focal_Loss</span></span>(<span>numClasses, alpha)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for dice_focal.</p>
+<div class="desc"><p>Computes Cross Entropy weighted with focal method.
+Voxel classified with less confidence are weighted more in the function.
+Focal Loss is defined as follows:
+<span><span class="MathJax_Preview"> L_{focal} = -\frac{1}{N} \sum_{c=1}^{C} (\sum^{N}(1-\hat{y}_{c})^{\gamma}\cdot y_{c} \cdot \log{\hat{y}_{c}}) </span><script type="math/tex; mode=display"> L_{focal} = -\frac{1}{N} \sum_{c=1}^{C} (\sum^{N}(1-\hat{y}_{c})^{\gamma}\cdot y_{c} \cdot \log{\hat{y}_{c}}) </script></span>
+<span><span class="MathJax_Preview"> \gamma = 2 </span><script type="math/tex; mode=display"> \gamma = 2 </script></span>
+C is the number of classes, y is the ground truth, y(hat) is the segmentation map and N is the total number of voxels.</p>
 <h2 id="arguments">Arguments</h2>
 <p>numClasses: number of classes
 alpha: parameter to weight contribution of dice and distance-weighted categorical crossentropy loss</p>
 <h2 id="returns">Returns</h2>
 <p>dice_focal function</p></div>
 </dd>
+<dt id="segmentation.losses.JaccardContour_Loss"><code class="name flex">
+<span>def <span class="ident">JaccardContour_Loss</span></span>(<span>numClasses)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computed mean jaccard coefficient between probability output mask and ground truth cotour labels.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>numClasses</code></strong></dt>
+<dd>number of classes</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>mean jaccard weigthed by class</p></div>
+</dd>
 <dt id="segmentation.losses.MeanDice_Loss"><code class="name flex">
 <span>def <span class="ident">MeanDice_Loss</span></span>(<span>numClasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for mean_dice.</p>
+<div class="desc"><p>Computed mean dice coefficient between probability output mask and ground tuth labels. Class predictions
+are weighted to account for class imbalance.</p>
+<p>MeanDice is defined as follows:
+<span><span class="MathJax_Preview"> D(y,\hat{y}) =\sum_{c=1}^{C}w_{c}(\frac{2\cdot\sum^{N} {y_{c}\cdot\hat{y}_{c}}}{\sum^{N}{y_{c}\cdot{y_{c}}} + \sum^{N}{\hat{y}_{c}}\cdot\hat{y}_{c} }) </span><script type="math/tex; mode=display"> D(y,\hat{y}) =\sum_{c=1}^{C}w_{c}(\frac{2\cdot\sum^{N} {y_{c}\cdot\hat{y}_{c}}}{\sum^{N}{y_{c}\cdot{y_{c}}} + \sum^{N}{\hat{y}_{c}}\cdot\hat{y}_{c} }) </script></span>
+where w_c is the weight factor for class c defined as:
+<span><span class="MathJax_Preview"> w_c = \frac{\sqrt{\frac{1}{N_c}}}{\sum_{i=1}^{C}\sqrt{\frac{1}{N_i}}} </span><script type="math/tex; mode=display"> w_c = \frac{\sqrt{\frac{1}{N_c}}}{\sum_{i=1}^{C}\sqrt{\frac{1}{N_i}}} </script></span>
+C is the number of classes, y is the ground truth, y(hat) is the segmentation map and N is the total number of voxels.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>numClasses</code></strong></dt>
@@ -123,7 +178,13 @@ alpha: parameter to weight contribution of dice and distance-weighted categorica
 <span>def <span class="ident">Region_CE_Loss</span></span>(<span>numClasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for region_crossentropy_loss</p>
+<div class="desc"><p>Computes the "double-faced" regional cross entropy function.
+Region_CE_Loss is defined as follows:
+<span><span class="MathJax_Preview"> L_{CE1}^{(c)} = - \frac{1}{N} \sum^{N} (y_{c} \cdot \log{\hat{y}_{c}}) </span><script type="math/tex; mode=display"> L_{CE1}^{(c)} = - \frac{1}{N} \sum^{N} (y_{c} \cdot \log{\hat{y}_{c}}) </script></span>
+<span><span class="MathJax_Preview"> L_{CE2}^{(c)} = - \frac{1}{N} \sum^{N} ((1-y_{c}) \cdot \log{(1-\hat{y}_{c})}) </span><script type="math/tex; mode=display"> L_{CE2}^{(c)} = - \frac{1}{N} \sum^{N} ((1-y_{c}) \cdot \log{(1-\hat{y}_{c})}) </script></span>
+<span><span class="MathJax_Preview"> L_{out} = \sum_{c=1}^{C} w_c * (0.5 \cdot L_{CE1}^{(c)} + 0.5 \cdot L_{CE2}^{(c)}) </span><script type="math/tex; mode=display"> L_{out} = \sum_{c=1}^{C} w_c * (0.5 \cdot L_{CE1}^{(c)} + 0.5 \cdot L_{CE2}^{(c)}) </script></span>
+C is the number of classes, y is the ground truth, y(hat) is the segmentation map, N is the total number of voxels
+and w_c is the weight assigned to each class to account for class imbalance.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>numClasses</code></strong></dt>
@@ -136,7 +197,12 @@ alpha: parameter to weight contribution of dice and distance-weighted categorica
 <span>def <span class="ident">Weighted_DiceBoundary_Loss</span></span>(<span>numClasses, alpha)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Wrapper function for multiclass_weighted_dice_boundary_loss.</p>
+<div class="desc"><p>Compute multiclass weighted dice index, weighted by the Euclidean Distance Map. Voxels
+further from the boundaries are weighted more.
+Weighted_DiceBoundary_Loss is defined as follows:
+<span><span class="MathJax_Preview"> L_{Dce} = -\frac{1}{N} \sum^{N} (\sum_{c=1}^{C} EDT_c \cdot y_c \cdot \log{\hat{y}_c}) </span><script type="math/tex; mode=display"> L_{Dce} = -\frac{1}{N} \sum^{N} (\sum_{c=1}^{C} EDT_c \cdot y_c \cdot \log{\hat{y}_c}) </script></span>
+where EDT is the signed Euclidean Distance Transform, C is the number of classes, y is the ground truth,
+y(hat) is the segmentation map and N is the total number of voxels.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>numClasses</code></strong></dt>
@@ -170,6 +236,7 @@ alpha: parameter to weight contribution of dice and distance-weighted categorica
 <li><code><a title="segmentation.losses.Distanced_Region_CE_Loss" href="#segmentation.losses.Distanced_Region_CE_Loss">Distanced_Region_CE_Loss</a></code></li>
 <li><code><a title="segmentation.losses.ExpLog_Loss" href="#segmentation.losses.ExpLog_Loss">ExpLog_Loss</a></code></li>
 <li><code><a title="segmentation.losses.Focal_Loss" href="#segmentation.losses.Focal_Loss">Focal_Loss</a></code></li>
+<li><code><a title="segmentation.losses.JaccardContour_Loss" href="#segmentation.losses.JaccardContour_Loss">JaccardContour_Loss</a></code></li>
 <li><code><a title="segmentation.losses.MeanDice_Loss" href="#segmentation.losses.MeanDice_Loss">MeanDice_Loss</a></code></li>
 <li><code><a title="segmentation.losses.Region_CE_Loss" href="#segmentation.losses.Region_CE_Loss">Region_CE_Loss</a></code></li>
 <li><code><a title="segmentation.losses.Weighted_DiceBoundary_Loss" href="#segmentation.losses.Weighted_DiceBoundary_Loss">Weighted_DiceBoundary_Loss</a></code></li>

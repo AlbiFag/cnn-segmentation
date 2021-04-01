@@ -170,7 +170,7 @@ In case seg is 3D volume, it separately computes 2D SDM fo each single slice.</p
 <span>def <span class="ident">computeContours</span></span>(<span>y_true, numClasses)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Receive y_true masks and creates y_true contours. It excludes contours of the background, as it is</p>
+<div class="desc"><p>Receive y_true masks and creates y_true contours.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>y_true</code></strong></dt>
@@ -178,8 +178,9 @@ In case seg is 3D volume, it separately computes 2D SDM fo each single slice.</p
 <dt><strong><code>numClasses</code></strong></dt>
 <dd>number of classes</dd>
 </dl>
-<p>Returns: array of ground truth contours: background contours are excluded. Output dimension is
-[class-1, batch, rows, columns, slices]</p></div>
+<h2 id="returns">Returns</h2>
+<p>array of ground truth contours [class, batch, rows, columns, slices]
+number of contour voxels</p></div>
 </dd>
 <dt id="segmentation.utils.count_class_voxels"><code class="name flex">
 <span>def <span class="ident">count_class_voxels</span></span>(<span>labels, nVoxels, numClasses)</span>

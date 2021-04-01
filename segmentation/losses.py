@@ -22,7 +22,23 @@ from tensorflow.python.keras import backend_config
 # 0
 def Distanced_CE_Loss(numClasses, alpha):
     """
-    Wrapper function for dice_categorical_cross_entropy.
+    Computes Cross Entropy weighted by an exponential transformation of the Euclidean
+    Distance Map, called Distance Weighted Map (DWM). Voxels closer to boundaries are weighted more.
+    Distanced Cross Entropy is combined with Dice Loss with parameter alpha.
+
+    Distanced_CE is defined as follows:
+    .. math::
+
+        L_{Dce} = -\\frac{1}{N} \sum^{N} (\sum_{c=1}^{C} DWM_c \cdot y_c \cdot \log{\hat{y}_c})
+
+    with the DWM defined as:
+    .. math::
+
+        DWM_c = 1 + \gamma * exp(-\\frac{EDT_c}{\sigma}), \hspace{3mm} \gamma = 8, \hspace{3mm} \sigma = 10
+
+    C is the number of classes, y is the ground truth, y(hat) is the segmentation map, EDT is the
+    Euclidean Distance Transform and N is the total number of voxels.
+
     Arguments:
         numClasses: number of classes
         alpha: parameter to weight contribution of dice and distance-weighted categorical crossentropy loss
@@ -106,7 +122,15 @@ def Distanced_CE_Loss(numClasses, alpha):
 # 2
 def Weighted_DiceBoundary_Loss(numClasses, alpha):
     """
-    Wrapper function for multiclass_weighted_dice_boundary_loss.
+    Compute multiclass weighted dice index, weighted by the Euclidean Distance Map. Voxels
+    further from the boundaries are weighted more.
+    Weighted_DiceBoundary_Loss is defined as follows:
+    ..math::
+        L_{Dce} = -\\frac{1}{N} \sum^{N} (\sum_{c=1}^{C} EDT_c \cdot y_c \cdot \log{\hat{y}_c})
+
+    where EDT is the signed Euclidean Distance Transform, C is the number of classes, y is the ground truth,
+    y(hat) is the segmentation map and N is the total number of voxels.
+
     Args:
         numClasses: number of classes
         alpha: parameter to weight contribution of dice and boundary loss
@@ -171,7 +195,16 @@ def Weighted_DiceBoundary_Loss(numClasses, alpha):
 # 3
 def Focal_Loss(numClasses, alpha):
     """
-    Wrapper function for dice_focal.
+    Computes Cross Entropy weighted with focal method.
+    Voxel classified with less confidence are weighted more in the function.
+    Focal Loss is defined as follows:
+    .. math::
+        L_{focal} = -\\frac{1}{N} \sum_{c=1}^{C} (\sum^{N}(1-\hat{y}_{c})^{\gamma}\cdot y_{c} \cdot \log{\hat{y}_{c}})
+    .. math::
+        \gamma = 2
+
+    C is the number of classes, y is the ground truth, y(hat) is the segmentation map and N is the total number of voxels.
+
     Arguments:
         numClasses: number of classes
         alpha: parameter to weight contribution of dice and distance-weighted categorical crossentropy loss
@@ -247,10 +280,21 @@ def Focal_Loss(numClasses, alpha):
 # 5
 def MeanDice_Loss(numClasses):
     """
-    Wrapper function for mean_dice.
+    Computed mean dice coefficient between probability output mask and ground tuth labels. Class predictions
+    are weighted to account for class imbalance.
+
+    MeanDice is defined as follows:
+    .. math::
+        D(y,\hat{y}) =\sum_{c=1}^{C}w_{c}(\\frac{2\cdot\sum^{N} {y_{c}\cdot\hat{y}_{c}}}{\sum^{N}{y_{c}\cdot{y_{c}}} + \sum^{N}{\hat{y}_{c}}\cdot\hat{y}_{c} })
+
+    where w_c is the weight factor for class c defined as:
+    .. math::
+        w_c = \\frac{\sqrt{\\frac{1}{N_c}}}{\sum_{i=1}^{C}\sqrt{\\frac{1}{N_i}}}
+
+    C is the number of classes, y is the ground truth, y(hat) is the segmentation map and N is the total number of voxels.
+
     Args:
         numClasses: number of classes
-
     Returns:
         mean dice weigthed by class
 
@@ -308,7 +352,7 @@ def MeanDice_Loss(numClasses):
 # 5
 def JaccardContour_Loss(numClasses):
     """
-    Wrapper function for Jaccard Index.
+    Computed mean jaccard coefficient between probability output mask and ground truth cotour labels.
     Args:
         numClasses: number of classes
 
@@ -375,7 +419,20 @@ def JaccardContour_Loss(numClasses):
 # 6
 def ExpLog_Loss(numClasses, gamma=1):
     """
-    Wrapper function for exp_log.
+    Computes Categorical Cross Entropy and Dice with exponential logarithmic transformations.
+
+    ExpLog Loss is defined as follows:
+    .. math::
+        L_{D} = \\frac{1}{C} \sum_{c=1}^{C} (-\log{\mathcal{D}_{c}(y,\hat{y})})^{{\gamma}_D}
+    .. math::
+        L_{CE} = \\frac{1}{C} \sum_{c=1}^{C} w_c(-\\frac{1}{N} \sum^{N} (y_{c} \cdot \log{\hat{y}_{c}})^{{\gamma}_{CE}})
+    .. math::
+        L_{out} = \\beta \cdot L_{D} + (1-\\beta) \cdot L_{CE}
+    .. math::
+        \\beta = 0.8 , \hspace{3mm}, {\gamma}_D = 1, \hspace{3mm}, {\gamma}_{CE} = 1
+
+    C is the number of classes, y is the ground truth, y(hat) is the segmentation map and N is the total number of voxels.
+
     Arguments:
         numClasses: number of classes
         alpha: parameter to weight contribution of dice and distance-weighted categorical crossentropy loss
@@ -458,7 +515,9 @@ def ExpLog_Loss(numClasses, gamma=1):
 # 7
 def Boundary_CE_Loss(numClasses):
     """
-    Wrapper function for boundary_crossentropy.
+    Computes "double-faced" boundary cross entropy, after the generation of contours ground truth labels with function
+    "computeContours".
+    Definition is the same as the Region_CE_Loss, but with ground truth and prediction contours, instead of filled masks.
     Args:
         numClasses: number of classes
     Returns:
@@ -517,7 +576,10 @@ def Boundary_CE_Loss(numClasses):
 
 def Distanced_Boundary_CE_Loss(numClasses):
     """
-    Wrapper function for dist_boundary_crossentropy.
+    Computes distanced "double-faced" boundary cross entropy, after the generation of Ground Truth Contours
+    and Euclidean Distance Map map with function "calc_DM_batch_edge".
+    Definition is the same as the Distanced_Region_CE_Loss, but with ground truth and prediction contours, instead of filled masks.
+
     Args:
         numClasses: number of classes
     Returns: dist_boundary_crossentropy function
@@ -585,7 +647,18 @@ def Distanced_Boundary_CE_Loss(numClasses):
 # 8
 def Region_CE_Loss(numClasses):
     """
-    Wrapper function for region_crossentropy_loss
+    Computes the "double-faced" regional cross entropy function.
+    Region_CE_Loss is defined as follows:
+    .. math::
+        L_{CE1}^{(c)} = - \\frac{1}{N} \sum^{N} (y_{c} \cdot \log{\hat{y}_{c}})
+    .. math::
+        L_{CE2}^{(c)} = - \\frac{1}{N} \sum^{N} ((1-y_{c}) \cdot \log{(1-\hat{y}_{c})})
+    .. math::
+        L_{out} = \sum_{c=1}^{C} w_c * (0.5 \cdot L_{CE1}^{(c)} + 0.5 \cdot L_{CE2}^{(c)})
+
+    C is the number of classes, y is the ground truth, y(hat) is the segmentation map, N is the total number of voxels
+    and w_c is the weight assigned to each class to account for class imbalance.
+
     Args:
         numClasses: number of classes
     Returns:
@@ -639,7 +712,29 @@ def Region_CE_Loss(numClasses):
 
 def Distanced_Region_CE_Loss(numClasses):
     """
-     Wrapper function for dist_region_crossentropy_loss.
+    Computes distanced "double-faced" regional cross entropy weighted with Euclidean Distance Map,
+    after generation of Euclidean Distance Map with function "calc_DM_batch".
+    Distanced_region_CE_Loss is defined as follows:
+    .. math::
+        L_{1}^{(c)} = \\frac{1}{N} \sum^{N} (-DWM \cdot y_{c} \cdot \log{\hat{y_{c}}})
+    .. math::
+        L_{2}^{(c)} = \\frac{1}{N} \sum^{N} (-DWM \cdot (1-y_{c}) \cdot \log{(1-\hat{y_{c}})})
+    .. math::
+        L_{edge} = \sum_{c=1}^{C} w_c * [\\beta \cdot L_{1}^{(c)} + (1 - \\beta) * L_{2}^{(c)}]
+
+    with the DWM defined as:
+    .. math::
+        DWM_c = 1 + \gamma * exp(-\\frac{EDT_c}{\sigma}), \hspace{3mm} \gamma = 8, \hspace{3mm} \sigma = 10
+
+    C is the number of classes, EDT is the Euclidean Distance Transform, y and y(hat) are reference and predicted
+    segmentation maps and N is the total number of voxels in the volume.
+    beta is a parameter that weights the two contriution accounting for the strong imbalance between the number of
+    contour voxels and background voxels, defined as follows:
+    .. math::
+        \\beta = \\frac{N_{edge}}{N_{total}}
+
+    where N_edge is the number of contour voxels.
+
     Args:
         numClasses: number of classes
     Returns:

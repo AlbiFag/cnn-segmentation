@@ -217,7 +217,7 @@ def Volume_Reshape():
     dimX = (volumeDim[0] - 1) * volumeVoxSize[0]
     dimY = (volumeDim[1] - 1) * volumeVoxSize[1]
     dimZ = (volumeDim[2] - 1) * volumeVoxSize[2]
-    nVolumeDim = [round(dimX / resolution[0] + 1), round(dimX / resolution[1] + 1), round(dimY / resolution[2] + 1)]
+    nVolumeDim = [round(dimX / resolution[0] + 1), round(dimY / resolution[1] + 1), round(dimZ / resolution[2] + 1)]
 
     # Resample to new dimension
     VolumeResampled = resampleVolumeScan(VolumeCT, Dimension)
